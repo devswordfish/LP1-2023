@@ -84,7 +84,7 @@ public class TicTacToe {
         } else if (winner == "player 1") {
             System.out.println("Player 1 (X) have won!!!");
         } else {
-            System.out.println("Player 2 (O) have wonaskPostionToComputer!!!");
+            System.out.println("Player 2 (O) have won!!!");
         }
     }
 
@@ -156,7 +156,7 @@ public class TicTacToe {
     }
 
     private void askPositionToComputer() {
-        // computer chooses randomly
+        // computer tries to win, but don't block the winning of other player
 
         try {
             System.out.format(
@@ -165,6 +165,41 @@ public class TicTacToe {
             );
 
             Thread.sleep(1500);
+
+            // try to win whenever possible
+            for (int[][] winningGroups : WINNINGS) {
+                int count = 0;
+                int[] coodEmptyTile = null;
+
+                for (int[] position : winningGroups) {
+                    int row = position[0];
+                    int column = position[1];
+
+                    if (game[row][column] == playerSymbol) {
+                        count++;
+                    } else if (game[row][column] == ' ') {
+                        coodEmptyTile = position;
+                    }
+                }
+
+                if (count == 2 && coodEmptyTile != null) {
+                    int position = coodEmptyTile[0] * 3 + coodEmptyTile[1];
+                    int row = coodEmptyTile[0];
+                    int column = coodEmptyTile[1];
+
+                    game[row][column] = playerSymbol;
+                    turns++;
+
+                    System.out.format(
+                            "[COMPUTER %d (%c)] Computer have chosen the position: %d\n",
+                            playerTurn, playerSymbol, position + 1
+                    );
+
+                    return;
+                }
+            }
+
+            // chooses a random tile, if it can't win
 
             ArrayList<Integer> freeTiles = new ArrayList<Integer>();
 
