@@ -1,7 +1,12 @@
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class TicTacToe {
+    public static int PLAYERvsPLAYER = 0;
+    public static int PLAYERvsCOMPUTER = 1;
+    public static int COMPUTERvsCOMPUTER = 2;
+
     private final char PLAYER1_SYMBOL = 'X';
     private final char PLAYER2_SYMBOL = 'O';
     private final int SPACING = 10; // to center the game
@@ -13,17 +18,18 @@ public class TicTacToe {
     private String winner = null;
 
     private boolean showPositionHint = false;
+    private int gameMode = 0;
 
     private char[][] game = new char[3][3];
     private final int[][][] WINNINGS = { // row-column pairs
-        { {0, 0}, {0, 1}, {0, 2} }, // top row
-        { {1, 0}, {1, 1}, {1, 2} }, // middle row
-        { {2, 0}, {2, 1}, {2, 2} }, // bottom row
-        { {0, 0}, {1, 0}, {2, 0} }, // left column
-        { {0, 1}, {1, 1}, {2, 1} }, // middle column
-        { {0, 2}, {1, 2}, {2, 2} }, // right column
-        { {0, 0}, {1, 1}, {2, 2} }, // diagonal left-top right-bottom
-        { {0, 2}, {1, 1}, {2, 0} }, // diagonal right-top left-bottom
+            { {0, 0}, {0, 1}, {0, 2} }, // top row
+            { {1, 0}, {1, 1}, {1, 2} }, // middle row
+            { {2, 0}, {2, 1}, {2, 2} }, // bottom row
+            { {0, 0}, {1, 0}, {2, 0} }, // left column
+            { {0, 1}, {1, 1}, {2, 1} }, // middle column
+            { {0, 2}, {1, 2}, {2, 2} }, // right column
+            { {0, 0}, {1, 1}, {2, 2} }, // diagonal left-top right-bottom
+            { {0, 2}, {1, 1}, {2, 0} }, // diagonal right-top left-bottom
     };
 
     public boolean getShowPositionHint() {
@@ -31,6 +37,13 @@ public class TicTacToe {
     }
     public void setShowPositionHint(boolean showPositionHint) {
         this.showPositionHint = showPositionHint;
+    }
+
+    public int getGameMode() {
+        return gameMode;
+    }
+    public void setGameMode(int gameMode) {
+        this.gameMode = gameMode;
     }
 
     public void play() {
@@ -41,9 +54,20 @@ public class TicTacToe {
 
         if (!showPositionHint) resetGame();
 
+        boolean isPlayerTurn = (int) (Math.random() * 2) == 0; // it's for PLAYER vs COMPUTER game mode
+
         while (winner == null) {
-            askPosition();
-            
+            if (gameMode == TicTacToe.PLAYERvsPLAYER) {
+                askPositionToPLayer();
+            } else if (gameMode == TicTacToe.PLAYERvsCOMPUTER) {
+                if (isPlayerTurn) askPositionToPLayer();
+                else askPositionToComputer();
+
+                isPlayerTurn = !isPlayerTurn;
+            } else if (gameMode == TicTacToe.COMPUTERvsCOMPUTER) {
+                askPositionToComputer();
+            }
+
             if (checkVictory()) {
                 if (playerTurn == 1) winner = "player 1";
                 else winner = "player 2";
@@ -60,11 +84,11 @@ public class TicTacToe {
         } else if (winner == "player 1") {
             System.out.println("Player 1 (X) have won!!!");
         } else {
-            System.out.println("Player 2 (O) have won!!!");
+            System.out.println("Player 2 (O) have wonaskPostionToComputer!!!");
         }
     }
 
-    public void title() {
+    private void title() {
         System.out.println("-".repeat(2 * SPACING + 13));
         System.out.println("=".repeat(SPACING) + " Tic Tac Toe " + "=".repeat(SPACING));
         System.out.println("-".repeat(2 * SPACING + 13));
@@ -88,22 +112,22 @@ public class TicTacToe {
         for (int i = game.length - 1; i >= 0; i--) {
             System.out.println(" ".repeat(SPACING) + "+---+---+---+");
             System.out.format(
-                " ".repeat(SPACING) +
-                "| %c | %c | %c |\n",
-                game[i][0], game[i][1], game[i][2]
+                    " ".repeat(SPACING) +
+                            "| %c | %c | %c |\n",
+                    game[i][0], game[i][1], game[i][2]
             );
         }
         System.out.println(" ".repeat(SPACING) + "+---+---+---+");
     }
 
-    private void askPosition() {
+    private void askPositionToPLayer() {
         boolean keepAsking = true;
 
         while (keepAsking) {
             try {
                 System.out.format(
-                    "[PLAYER %d (%c)] Enter the position: ",
-                    playerTurn, playerSymbol
+                        "[PLAYER %d (%c)] Enter the position: ",
+                        playerTurn, playerSymbol
                 );
                 int position = Integer.parseInt(scan.nextLine());
 
@@ -128,6 +152,48 @@ public class TicTacToe {
             } catch (Exception e) {
                 System.out.println("Enter a valid position!");
             }
+        }
+    }
+
+    private void askPositionToComputer() {
+        // computer chooses randomly
+
+        try {
+            System.out.format(
+                    "[COMPUTER %d (%c)] Computer is thinking...\n",
+                    playerTurn, playerSymbol
+            );
+
+            Thread.sleep(1500);
+
+            ArrayList<Integer> freeTiles = new ArrayList<Integer>();
+
+            for (int i = 0; i < game.length; i++) {
+                for (int j = 0; j < game.length; j++) {
+                    if (game[i][j] != PLAYER1_SYMBOL && game[i][j] != PLAYER2_SYMBOL) {
+                        freeTiles.add(i * 3 + j);
+                    }
+                }
+            }
+
+            int randomIndex = (int) (Math.random() * freeTiles.size());
+            int position = freeTiles.get(randomIndex);
+
+            int row = position / 3;
+            int column = position % 3;
+
+            game[row][column] = playerSymbol;
+            turns++;
+
+            System.out.format(
+                    "[COMPUTER %d (%c)] Computer have chosen the position: %d\n",
+                    playerTurn, playerSymbol, position + 1
+            );
+
+            Thread.sleep(500);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Computer has slept forever");
         }
     }
 
@@ -163,6 +229,7 @@ public class TicTacToe {
                 return true;
             }
         }
+
         return false;
     }
 }
